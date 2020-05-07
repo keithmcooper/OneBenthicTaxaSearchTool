@@ -73,6 +73,7 @@ INNER JOIN faunal_data.aphia as a ON wt.aphia_aphiaid = a.aphiaid
 INNER JOIN faunal_data.worrms as w ON w.validaphiaid = a.worrms_validaphiaid
 INNER JOIN associations.sampleowner as so ON so.sample_samplecode = s.samplecode
 INNER JOIN associations.owner as o ON so.owner_ownername = o.ownername
+WHERE datapubliclyavailable = TRUE
 ORDER by su.surveyname;
 ")
 #WHERE w.validname = 'Crepidula fornicata'
