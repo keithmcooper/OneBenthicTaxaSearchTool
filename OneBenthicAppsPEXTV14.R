@@ -45,7 +45,7 @@ s.date,
 s.macrosieve,
 ts.worrmstaxa_taxonname,
 ts.taxaqual_qualifier,
-w.scientificname,
+w.validname,
 w.rank,
 tq.qualifiername,
 a.worrms_validaphiaid,
@@ -67,19 +67,20 @@ INNER JOIN associations.surveysample as ss ON ss.survey_surveyname = su.surveyna
 INNER JOIN samples.sample as s ON ss.sample_samplecode = s.samplecode
 INNER JOIN gear.gear as g ON s.gear_gearcode = g.gearcode
 INNER JOIN faunal_data.taxasample as ts ON s.samplecode= ts.sample_samplecode 
-INNER JOIN faunal_data.taxaqual as tq ON ts.taxaqual_qualifier = tq.qualifier 
+LEFT JOIN faunal_data.taxaqual as tq ON ts.taxaqual_qualifier = tq.qualifier 
 INNER JOIN faunal_data.worrmstaxa as wt ON wt.taxonname = ts.worrmstaxa_taxonname 
 INNER JOIN faunal_data.aphia as a ON wt.aphia_aphiaid = a.aphiaid 
 INNER JOIN faunal_data.worrms as w ON w.validaphiaid = a.worrms_validaphiaid
 INNER JOIN associations.sampleowner as so ON so.sample_samplecode = s.samplecode
 INNER JOIN associations.owner as o ON so.owner_ownername = o.ownername
-
 ORDER by su.surveyname;
 ")
-#WHERE w.scientificname like '%Ampel%'
+#WHERE w.validname = 'Crepidula fornicata'
 ## Check results of query 
-names(data)
 
+
+names(data)
+dim(data)
 ## Change column names
 colnames(data)[1] <- "SurveyName"
 colnames(data)[2] <- "SampleCode"
@@ -88,7 +89,7 @@ colnames(data)[4] <- "Longitude"
 colnames(data)[5] <- "GearName"
 colnames(data)[6] <- "Date"
 colnames(data)[7] <- "MacroSieveSize_mm"
-#colnames(data)[10] <- "Scientificname(WoRMS)"
+#colnames(data)[10] <- "validname(WoRMS)"
 colnames(data)[11] <- "Rank"
 colnames(data)[12] <- "TaxonQualifier"
 colnames(data)[13] <- "AphiaID"
@@ -101,7 +102,7 @@ colnames(data)[19] <- "SampleSize"
 ## Check name changes
 names(data)
 #[1] "SurveyName"            "SampleCode"            "Latitude"              "Longitude"             "GearName"              "Date"                  "MacroSieveSize_mm"    
-#[8] "worrmstaxa_taxonname"  "taxaqual_qualifier"    "scientificname"        "Rank"                  "TaxonQualifier"        "AphiaID"               "Abund"                
+#[8] "worrmstaxa_taxonname"  "taxaqual_qualifier"    "validname"        "Rank"                  "TaxonQualifier"        "AphiaID"               "Abund"                
 #[15] "datapubliclyavailable" "SampleCode2"          
 
 ## Create an object 'points' for sample positions
@@ -176,57 +177,106 @@ names(psadata)
 #__________________________________________________________________________________________
 #### GET SPATIAL LAYERS FROM OneBenthic - WHERE NO API AVAILABLE (MPAS, O&G, DISP) ####
 
-mcz = st_read(con, query = "SELECT * FROM spatial.c20190531v2_offshorempas_wgs84 WHERE site_statu = 'MCZ - Secretary of State';")
-sac = st_read(con, query = "SELECT * FROM spatial.c20190531v2_offshorempas_wgs84 WHERE site_statu = 'SAC'or site_statu = 'cSAC';")
-ncmpa = st_read(con, query = "SELECT * FROM spatial.c20190531v2_offshorempas_wgs84 WHERE site_statu = 'NCMPA';")
-oga = st_read(con, query = "SELECT * FROM spatial.oga_licences_wgs84;")
-disp = st_read(con, query = "SELECT * FROM spatial.disposalSiteJan2020;")
+mcz <-  st_read(con, query = "SELECT * FROM spatial.c20190905_offshorempas_wgs84 WHERE site_statu = 'MCZ - Secretary of State';")
+sac <-  st_read(con, query = "SELECT * FROM spatial.c20190905_offshorempas_wgs84 WHERE site_statu = 'SAC'or site_statu = 'cSAC';")
+ncmpa <-  st_read(con, query = "SELECT * FROM spatial.c20190905_offshorempas_wgs84 WHERE site_statu = 'NCMPA';")
+oga <- st_read(con, query = "SELECT * FROM spatial.oga_licences_wgs84;")
+disp  <-  st_read(con, query = "SELECT * FROM spatial.disposalSiteJan2020;")
+agg <- st_read(con, query = "SELECT * FROM ap_marine_aggregate.extraction_areas;")
+owf <- st_read(con, query = "SELECT * FROM spatial.offshore_wind_site_agreements_england_wales__ni__the_crown_esta;")
+owf_cab <- st_read(con, query = "SELECT * FROM spatial.offshore_wind_cable_agreements_england_wales__ni_the_crown_esta;")
+wave <- st_read(con, query = "SELECT * FROM spatial.offshore_wave_site_agreements_england_wales__ni_the_crown_estat;")
+wave_cab <- st_read(con, query = "SELECT * FROM spatial.offshore_wave_cable_agreements_england_wales__ni_the_crown_esta;")
+tidal <- st_read(con, query = "SELECT * FROM spatial.offshore_tidal_stream_site_agreements_england_wales__ni_the_cro;")
+tidal_cab <- st_read(con, query = "SELECT * FROM spatial.offshore_tidal_stream_cable_agreements_england_wales__ni_the_cr;")
+R4_chara <- st_read(con, query = "SELECT * FROM spatial.offshore_wind_leasing_round_4_characterisation_areas_england_wa;")
+R4_bid <- st_read(con, query = "SELECT * FROM spatial.offshore_wind_leasing_round_4_bidding_areas_england_wales_and_n;")
 
-## Check format of OneBenthic spatial objects
-class(disp) #[1] "sf"         "data.frame"
-class(oga) #[1] "sf"         "data.frame"
+## Check class of objects
+class(mcz)#[1] "sf"         "data.frame"
+class(sac)#[1] "sf"         "data.frame"
+class(ncmpa)#[1] "sf"         "data.frame"
+class(oga)#[1] "sf"         "data.frame"
+class(disp)#[1] "sf"         "data.frame"
+class(agg) #[1] "sf"         "data.frame"
+class(owf)#[1] "sf"         "data.frame"
+class(owf_cab)#[1] "sf"         "data.frame"
+class(wave)#[1] "sf"         "data.frame"
+class(wave_cab)#[1] "sf"         "data.frame"
+class(tidal)#[1] "sf"         "data.frame"
+class(tidal_cab)#[1] "sf"         "data.frame"
+class(R4_chara)#[1] "sf"         "data.frame"
+class(R4_bid)#[1] "sf"         "data.frame"
 
-## Test plot of a patial object from OneBenthic
-leaflet() %>%addTiles() %>%addPolygons(data = disp)
+## Check CRS
+st_crs(mcz)#Coordinate Reference System: NA
+st_crs(sac)#Coordinate Reference System: NA
+st_crs(ncmpa)#Coordinate Reference System: NA
+st_crs(oga)#Coordinate Reference System: NA
+st_crs(disp)#Coordinate Reference System: NA
+st_crs(agg) # 4326
+st_crs(owf)#Coordinate Reference System: NA
+st_crs(owf_cab)#Coordinate Reference System: NA
+st_crs(wave)#Coordinate Reference System: NA
+st_crs(wave_cab)#Coordinate Reference System: NA
+st_crs(tidal)#Coordinate Reference System: NA
+st_crs(tidal_cab)#Coordinate Reference System: NA
+st_crs(R4_chara)#Coordinate Reference System: NA
+st_crs(R4_bid)#Coordinate Reference System: NA
+
+## Set CRS where necessary
+st_crs(mcz) <- 4326
+st_crs(sac) <- 4326
+st_crs(ncmpa) <- 4326
+st_crs(oga) <- 4326
+st_crs(disp) <- 4326
+st_crs(owf) <- 4326
+st_crs(owf_cab) <- 4326
+st_crs(wave) <- 4326
+st_crs(wave_cab) <- 4326
+st_crs(tidal) <- 4326
+st_crs(tidal_cab) <- 4326
+st_crs(R4_chara) <- 4326
+st_crs(R4_bid) <- 4326
+
+#__________________________________________________________________________________________
 
 #__________________________________________________________________________________________
 #### GET SPATIAL LAYERS VIA API (AGG, OWF, WAVE, TIDE) ####
 
 
 ## Bring in data via API
-aggdata <- geojson_read("https://opendata.arcgis.com/datasets/ced5788f014546b0b571e8d29b021166_0.geojson",  what = "sp")
-#owfdata <- geojson_read("https://opendata.arcgis.com/datasets/d670e395b81147a4a24d10de74f71446_0.geojson",  what = "sp")
-owfdata <- geojson_read("https://opendata.arcgis.com/datasets/091b2244bf534d398140452cc98de09b_0.geojson",  what = "sp")
-#owf_cabdata <- geojson_read("https://opendata.arcgis.com/datasets/8f9dde0758b241399964c3178f025427_0.geojson",  what = "sp")
-owf_cabdata <- geojson_read("https://opendata.arcgis.com/datasets/dabc9654ba92480caa914629004a1eba_0.geojson",  what = "sp")
-wavedata <- geojson_read("https://opendata.arcgis.com/datasets/89f05cce72db4bbe9688a98c5d4d8659_0.geojson",  what = "sp")
-wave_cabdata <- geojson_read("https://opendata.arcgis.com/datasets/9f694a7c71bc4bdd9435408f3cd0c3c1_0.geojson",  what = "sp")
-tidaldata <- geojson_read("https://opendata.arcgis.com/datasets/a722b677a6754187bd018ca1292af568_0.geojson",  what = "sp")
-tidal_cabdata <- geojson_read("https://opendata.arcgis.com/datasets/277644bfed424c9196db80911537c5c0_0.geojson",  what = "sp")
-R4_charadata <- geojson_read("https://opendata.arcgis.com/datasets/c0e61d8972e4438ab1c39304b7f28608_0.geojson",  what = "sp")
-R4_biddata <- geojson_read("https://opendata.arcgis.com/datasets/54dce8a263324a85b36523e31fff20cc_0.geojson",  what = "sp")
+#aggdata <- geojson_read("https://opendata.arcgis.com/datasets/ced5788f014546b0b571e8d29b021166_0.geojson",  what = "sp")
+#owfdata <- geojson_read("https://opendata.arcgis.com/datasets/091b2244bf534d398140452cc98de09b_0.geojson",  what = "sp")
+#owf_cabdata <- geojson_read("https://opendata.arcgis.com/datasets/dabc9654ba92480caa914629004a1eba_0.geojson",  what = "sp")
+#wavedata <- geojson_read("https://opendata.arcgis.com/datasets/89f05cce72db4bbe9688a98c5d4d8659_0.geojson",  what = "sp")
+#wave_cabdata <- geojson_read("https://opendata.arcgis.com/datasets/9f694a7c71bc4bdd9435408f3cd0c3c1_0.geojson",  what = "sp")
+#tidaldata <- geojson_read("https://opendata.arcgis.com/datasets/a722b677a6754187bd018ca1292af568_0.geojson",  what = "sp")
+#tidal_cabdata <- geojson_read("https://opendata.arcgis.com/datasets/277644bfed424c9196db80911537c5c0_0.geojson",  what = "sp")
+#R4_charadata <- geojson_read("https://opendata.arcgis.com/datasets/c0e61d8972e4438ab1c39304b7f28608_0.geojson",  what = "sp")
+#R4_biddata <- geojson_read("https://opendata.arcgis.com/datasets/54dce8a263324a85b36523e31fff20cc_0.geojson",  what = "sp")
 
 ## Project data to long lat using sp
-agg <- spTransform(aggdata, CRS("+init=epsg:4326"))#Project your data to longlat using spTransform from either rgdal or sp.
-owf <- spTransform(owfdata, CRS("+init=epsg:4326"))
-owf_cab <- spTransform(owf_cabdata, CRS("+init=epsg:4326"))
-wave <- spTransform(wavedata, CRS("+init=epsg:4326"))
-wave_cab <- spTransform(wave_cabdata, CRS("+init=epsg:4326"))
-tidal <- spTransform(tidaldata, CRS("+init=epsg:4326"))
-tidal_cab <- spTransform(tidal_cabdata, CRS("+init=epsg:4326"))
-R4_chara <- spTransform(R4_charadata, CRS("+init=epsg:4326"))
-R4_bid <- spTransform(R4_biddata, CRS("+init=epsg:4326"))
+#agg <- spTransform(aggdata, CRS("+init=epsg:4326"))#Project your data to longlat using spTransform from either rgdal or sp.
+#owf <- spTransform(owfdata, CRS("+init=epsg:4326"))
+#owf_cab <- spTransform(owf_cabdata, CRS("+init=epsg:4326"))
+#wave <- spTransform(wavedata, CRS("+init=epsg:4326"))
+#wave_cab <- spTransform(wave_cabdata, CRS("+init=epsg:4326"))
+#tidal <- spTransform(tidaldata, CRS("+init=epsg:4326"))
+#tidal_cab <- spTransform(tidal_cabdata, CRS("+init=epsg:4326"))
+#R4_chara <- spTransform(R4_charadata, CRS("+init=epsg:4326"))
+#R4_bid <- spTransform(R4_biddata, CRS("+init=epsg:4326"))
 
 ## Convert api data from sp to sf
-agg <- st_as_sf(agg)
-owf <- st_as_sf(owf)
-owf_cab <-st_as_sf(owf_cab)
-wave <- st_as_sf(wave)
-wave_cab <-st_as_sf(wave_cab)
-tidal <- st_as_sf(tidal)
-tidal_cab <- st_as_sf(tidal_cab)
-R4_chara <- st_as_sf(R4_chara)
-R4_bid <- st_as_sf(R4_bid)
+#agg <- st_as_sf(agg)
+#owf <- st_as_sf(owf)
+#owf_cab <-st_as_sf(owf_cab)
+#wave <- st_as_sf(wave)
+#wave_cab <-st_as_sf(wave_cab)
+#tidal <- st_as_sf(tidal)
+#tidal_cab <- st_as_sf(tidal_cab)
+#R4_chara <- st_as_sf(R4_chara)
+#R4_bid <- st_as_sf(R4_bid)
 #################################################
 ###############################################
 ## Load libraries
@@ -285,9 +335,9 @@ sdata3=sdata2[,c(25:35,10)]
 library(reshape2) 
 
 ## Melt data into suitable form for facetting 
-sdata4 <- melt(sdata3,"scientificname") 
+sdata4 <- melt(sdata3,"validname") 
 # Produces a df of 3 cols (PhyCluster, variable, value)
-sdata5 <- sdata4[which(sdata4$scientificname =="Sabellaria spinulosa"),]
+sdata5 <- sdata4[which(sdata4$validname =="Sabellaria spinulosa"),]
 sdata6 <- sdata5[,2:3]
 View(sdata6)
 ## Plotting
@@ -307,7 +357,7 @@ ui <- fluidPage(
     
 #__________________________________________________________________________________________
 #### SELECT SURVEY(S) ####    
-    column(2,selectizeInput(inputId="taxonInput", multiple = F,h4("Select taxa",style="color:#808080"),choices =levels(as.factor(data$scientificname)),selected=NULL,options=list(maxOptions=4000)),h4("Taxon Rank:",style="color:#808080"),textOutput("selected_rank"),br(),h4("AphiaID:",style="color:#808080"),textOutput("selected_aphiaid"),br(),h4("Phylum:",style="color:#808080"),textOutput("selected_phylum"),h4("Class:",style="color:#808080"),textOutput("selected_class"),h4("Order:",style="color:#808080"),textOutput("selected_order"),h4("Family:",style="color:#808080"),textOutput("selected_family"),h4("Genus:",style="color:#808080"),textOutput("selected_genus")),
+    column(2,selectizeInput(inputId="taxonInput", multiple = F,h4("Select taxa",style="color:#808080"),choices =levels(as.factor(data$validname)),selected=NULL,options=list(maxOptions=4000)),h4("Taxon Rank:",style="color:#808080"),textOutput("selected_rank"),br(),h4("AphiaID:",style="color:#808080"),textOutput("selected_aphiaid"),br(),h4("Phylum:",style="color:#808080"),textOutput("selected_phylum"),h4("Class:",style="color:#808080"),textOutput("selected_class"),h4("Order:",style="color:#808080"),textOutput("selected_order"),h4("Family:",style="color:#808080"),textOutput("selected_family"),h4("Genus:",style="color:#808080"),textOutput("selected_genus")),
     
 #__________________________________________________________________________________________
 #### MAP ####    
@@ -394,32 +444,32 @@ tabPanel("Funders",(img(src="logos.png",height = 400, width = 800))),
 server <- function(input, output) {
 #__________________________________________________________________________________________
   output$selected_rank <- renderText({ 
-    rankinf=data[which(data$scientificname == input$taxonInput),]
+    rankinf=data[which(data$validname == input$taxonInput),]
     paste(unique(rankinf$Rank))
   })
   
   output$selected_aphiaid <- renderText({ 
-    aphiaid=data[which(data$scientificname == input$taxonInput),]
+    aphiaid=data[which(data$validname == input$taxonInput),]
     paste(unique(aphiaid$AphiaID))
   })
   output$selected_phylum <- renderText({ 
-    phylum=data[which(data$scientificname == input$taxonInput),]
+    phylum=data[which(data$validname == input$taxonInput),]
     paste(unique(phylum$phylum))
   })
   output$selected_class <- renderText({ 
-    class=data[which(data$scientificname == input$taxonInput),]
+    class=data[which(data$validname == input$taxonInput),]
     paste(unique(class$class))
   })
   output$selected_order <- renderText({ 
-    order=data[which(data$scientificname == input$taxonInput),]
+    order=data[which(data$validname == input$taxonInput),]
     paste(unique(order$order))
   })
   output$selected_family <- renderText({ 
-    family=data[which(data$scientificname == input$taxonInput),]
+    family=data[which(data$validname == input$taxonInput),]
     paste(unique(family$family))
   })
   output$selected_genus <- renderText({ 
-    genus=data[which(data$scientificname == input$taxonInput),]
+    genus=data[which(data$validname == input$taxonInput),]
     paste(unique(genus$genus))
   })
 #### INTERACTIVE MAP ####
@@ -465,7 +515,7 @@ server <- function(input, output) {
       clearGroup("myMarkers") %>%
 
 # Highlight new selected surveys
-      addMarkers(data = points[points$scientificname == input$taxonInput, ],
+      addMarkers(data = points[points$validname == input$taxonInput, ],
                  ~Longitude,
                  ~Latitude,
                  group = "myMarkers")
@@ -475,8 +525,8 @@ server <- function(input, output) {
 #### REACTIVE OBJECT: SAMPLE METADATA FOR SELECTED SURVEY(S) ####  
 # Reactive object for sample metadata (selected survey(s))
     coord <- reactive({
-    coord2 <- subset(data, scientificname == input$taxonInput)
-        coord3 <- unique(coord2[,1:6]) #SurveyName, SampleCode, Latitude, Longitude, GearName  
+    coord2 <- subset(data, validname == input$taxonInput)
+        coord3 <- unique(coord2[,c(1:6,12)]) #SurveyName, SampleCode, Latitude, Longitude, GearName  
     return(coord3)
   })
 
@@ -484,14 +534,14 @@ server <- function(input, output) {
 #### OUTPUT  METADATA TABLE FOR SELECTED SURVEY(S) ####  
  
   output$coordinates <- DT::renderDataTable({
-    coord() # Reactive metadata object
+    coord()[,1:6] # Reactive metadata object
   })
   
 #__________________________________________________________________________________________ 
   #### REACTIVE OBJECT: SAMPLE METADATA AND FAUNAL ABUNDANCES FOR SELECTED SURVEY(S) ####
   
   data2 <- reactive({
-    data2 <- subset(data, scientificname == input$taxonInput)
+    data2 <- subset(data, validname == input$taxonInput)
   
     # names(data)
    # 1:"SurveyName"
@@ -503,7 +553,7 @@ server <- function(input, output) {
    # 7:"MacroSieveSize_mm"
    # 8:"worrmstaxa_taxonname"
    # 9:"taxaqual_qualifier"
-   # 10:"scientificname"
+   # 10:"validname"
    # 11: "Rank"
    # 12:"TaxonQualifier"
    # 13:"AphiaID"
@@ -537,7 +587,7 @@ server <- function(input, output) {
     #8:GearName
     #9:SampleSize
     #10:MacroSieveSize_mm
-    #11:Scientificname(WoRMS)
+    #11:validname(WoRMS)
     #12:AphiaID
     #13:Rank
     #14:TaxonQualifier
@@ -565,7 +615,7 @@ server <- function(input, output) {
     #8:GearName
     #9:SampleSize
     #10:MacroSieveSize_mm
-    #11:Scientificname(WoRMS)
+    #11:validname(WoRMS)
     #12:AphiaID
     #13:Rank
     #14:TaxonQualifier
@@ -701,10 +751,10 @@ server <- function(input, output) {
   vardata <- reactive({
     
     
-      vardata1 <- subset(sdata2, scientificname == input$taxonInput)
+      vardata1 <- subset(sdata2, validname == input$taxonInput)
       vardata2=vardata1[,c(25:35,10)]
       library(reshape2) 
-      vardata3 <- melt(vardata2,"scientificname")
+      vardata3 <- melt(vardata2,"validname")
       vardata4 <- vardata3[complete.cases(vardata3),]
       return(vardata4)
    
