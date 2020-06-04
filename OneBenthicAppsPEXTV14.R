@@ -12,9 +12,10 @@ library(dplyr)
 library(geojsonio)
 library(sp)
 library(ggplot2)
+library(ggplot2)
 
 #__________________________________________________________________________________________
-#### GET POINT SAMPLE DATA (META & FAUNA) ####
+#### cREATE A CONNECTION TO THE DATABASE ####
 
 ## create a connection to OneBenthic Live. Save the password
 pw <- {
@@ -33,6 +34,9 @@ con =  dbConnect(drv, dbname = "one_benthic",
                  password = pw)
 
 rm(pw) # remove the password
+
+#__________________________________________________________________________________________
+#### GET POINT SAMPLE DATA (META & FAUNA) ####
 
 ## Get data
 data = dbGetQuery(con,
@@ -76,12 +80,10 @@ INNER JOIN associations.owner as o ON so.owner_ownername = o.ownername
 WHERE datapubliclyavailable = TRUE
 ORDER by su.surveyname;
 ")
-#WHERE w.validname = 'Crepidula fornicata'
-## Check results of query 
 
-
+## Check names
 names(data)
-dim(data)
+
 ## Change column names
 colnames(data)[1] <- "SurveyName"
 colnames(data)[2] <- "SampleCode"
@@ -102,22 +104,31 @@ colnames(data)[19] <- "SampleSize"
 
 ## Check name changes
 names(data)
-#[1] "SurveyName"            "SampleCode"            "Latitude"              "Longitude"             "GearName"              "Date"                  "MacroSieveSize_mm"    
-#[8] "worrmstaxa_taxonname"  "taxaqual_qualifier"    "validname"        "Rank"                  "TaxonQualifier"        "AphiaID"               "Abund"                
-#[15] "datapubliclyavailable" "SampleCode2"          
+#[1] "SurveyName"            
+#2"SampleCode"            
+#3"Latitude"              
+#4"Longitude"             
+#5"GearName"              
+#6"Date"                  
+#7"MacroSieveSize_mm"    
+#8"worrmstaxa_taxonname"  
+#9"taxaqual_qualifier"    
+#10"validname"        
+#11"Rank"                  
+#12"TaxonQualifier"        
+#13"AphiaID"               
+#14"Abund"                
+#15"datapubliclyavailable" "SampleCode2"          
 
 ## Create an object 'points' for sample positions
 points <- unique(data[,c(4:3,1,2,10)])
 #View(points)
 head(points)
 dim(points)
-#plot(points$Longitude,points$Latitude)
 
+## Unique positions
 points2 <- unique(data[,c(4:3,1,2)])
-#__________________________________________________________________________________________
-###############################
-###############################
-##############################
+
 #__________________________________________________________________________________________
 #### GET POINT SAMPLE DATA (META & PSA) ####
 
@@ -146,6 +157,7 @@ INNER JOIN gear.gear as g ON s.gear_gearcode = g.gearcode
 INNER JOIN sediment_data.sedvarsample as svs ON s.samplecode= svs.sample_samplecode 
 INNER JOIN associations.sampleowner as so ON so.sample_samplecode = s.samplecode
 INNER JOIN associations.owner as o ON so.owner_ownername = o.ownername
+WHERE datapubliclyavailable = TRUE
 ORDER by su.surveyname;")
 
 ## Check results of query 
@@ -167,14 +179,17 @@ colnames(psadata)[13] <- "SampleSize"
 
 ## Check name changes
 names(psadata)
-# [1] "SurveyName"            "SampleCode"            "Latitude"              "Longitude"             "GearName"              "Date"                  "SieveSize_mm"         
-# [8] "Percentage"            "datapubliclyavailable" "SampleCode2"           "DataOwner"
-#__________________________________________________________________________________________
-
-
-#################################
-##################################
-##############################
+#1 "SurveyName"            
+#2 "SampleCode"            
+#3 "Latitude"              
+#4 "Longitude"             
+#5 "GearName"              
+#6 "Date"                  
+#7 "SieveSize_mm"         
+#8  "Percentage"            
+#9 "datapubliclyavailable" 
+#10 "SampleCode2"           
+#11 "DataOwner"
 #__________________________________________________________________________________________
 #### GET SPATIAL LAYERS FROM OneBenthic - WHERE NO API AVAILABLE (MPAS, O&G, DISP) ####
 
@@ -192,6 +207,7 @@ tidal <- st_read(con, query = "SELECT * FROM spatial.offshore_tidal_stream_site_
 tidal_cab <- st_read(con, query = "SELECT * FROM spatial.offshore_tidal_stream_cable_agreements_england_wales__ni_the_cr;")
 R4_chara <- st_read(con, query = "SELECT * FROM spatial.offshore_wind_leasing_round_4_characterisation_areas_england_wa;")
 R4_bid <- st_read(con, query = "SELECT * FROM spatial.offshore_wind_leasing_round_4_bidding_areas_england_wales_and_n;")
+phyclust <- st_read(con, query = "SELECT * FROM spatial.physicalcluster;")
 
 ## Check class of objects
 class(mcz)#[1] "sf"         "data.frame"
@@ -208,6 +224,7 @@ class(tidal)#[1] "sf"         "data.frame"
 class(tidal_cab)#[1] "sf"         "data.frame"
 class(R4_chara)#[1] "sf"         "data.frame"
 class(R4_bid)#[1] "sf"         "data.frame"
+class(phyclust)#[1] "sf"         "data.frame"
 
 ## Check CRS
 st_crs(mcz)#Coordinate Reference System: NA
@@ -224,6 +241,7 @@ st_crs(tidal)#Coordinate Reference System: NA
 st_crs(tidal_cab)#Coordinate Reference System: NA
 st_crs(R4_chara)#Coordinate Reference System: NA
 st_crs(R4_bid)#Coordinate Reference System: NA
+st_crs(phyclust)#Coordinate Reference System: NA
 
 ## Set CRS where necessary
 st_crs(mcz) <- 4326
@@ -239,9 +257,17 @@ st_crs(tidal) <- 4326
 st_crs(tidal_cab) <- 4326
 st_crs(R4_chara) <- 4326
 st_crs(R4_bid) <- 4326
+st_crs(phyclust) <- 4326
 
-#__________________________________________________________________________________________
+## Assign colours to phyclust strata
+phyclust$dn <- as.factor(phyclust$dn)
+#levels(phyclust$dn)
 
+factpal <- colorFactor(c("#F8766D","#DE8C00","#B79F00","#7CAE00","#00BA38","#00C08B","#00BFC4","#00B4F0","#619CFF","#C77CFF","#F564E3","#FF64B0"), phyclust$dn)
+
+#leaflet(phyclust) %>%
+#  addPolygons(stroke = FALSE, smoothFactor = 0.2, fillOpacity = 1,
+ #             color = ~factpal(dn))
 #__________________________________________________________________________________________
 #### GET SPATIAL LAYERS VIA API (AGG, OWF, WAVE, TIDE) ####
 
@@ -278,8 +304,10 @@ st_crs(R4_bid) <- 4326
 #tidal_cab <- st_as_sf(tidal_cab)
 #R4_chara <- st_as_sf(R4_chara)
 #R4_bid <- st_as_sf(R4_bid)
-#################################################
-###############################################
+
+#__________________________________________________________________________________________
+####
+
 ## Load libraries
 #library(ggplot2)
 library(rgdal)
@@ -292,60 +320,46 @@ library(raster)
 
 ## Set working directory
 setwd('C:/Users/kmc00/OneDrive - CEFAS/R_PROJECTS/OneBenthicTaxaSearchTool/R')
-
-## Identify raster files
-list <- list.files(path='DATA/FINAL_RASTERS',pattern=".tif", full.names=TRUE)
-list
-
-## Create raster stack
-predictors <- stack(list)
-predictors
-
-## Simple names for predictor variables
-names(predictors)=c("AvCur","Chla","Depth","Gravel","Mud","Sal","Sand","SPM","Stress","Temp","WOV")#"Sand",
-names(predictors)
-
-## Plot raster stack
-#plot(predictors)
-
-#### 20. RANDOM FOREST (BIO): EXTRACT PREDICTOR VARIABLES FROM RASTER STACK ####
-
-#head(FaunalCluster)
-
-## Create a df for predictor variables
-sdata <- extract(predictors, data[,4:3])
-
-#View(sdata)
-class(sdata)
-
-##Change from matrix to df
-sdata=as.data.frame(sdata)
-## Bind togeter data and extracted variables (sdata)
-#View(sdata)
-sdata2 <- cbind(data,sdata)
-View(sdata2)
-str(sdata2)
-names(sdata2)
-
-#################################################
-## Create a df 'bp2' with only the phy variables and taxon 
-sdata3=sdata2[,c(25:35,10)]
-
-
-## Call library 'reshape2' - required for melting data 
-library(reshape2) 
-
-## Melt data into suitable form for facetting 
-sdata4 <- melt(sdata3,"validname") 
-# Produces a df of 3 cols (PhyCluster, variable, value)
-sdata5 <- sdata4[which(sdata4$validname =="Sabellaria spinulosa"),]
-sdata6 <- sdata5[,2:3]
-View(sdata6)
-## Plotting
-ggplot(sdata6, aes(x=value)) + 
-  geom_histogram(binwidth=0.5)+
-  facet_wrap(~variable,scales="free")
 ###############################################
+
+## Bring in raster data for PhyCluster group
+  str_name<-'DATA/PhysicalCluster.tif' 
+  phyclustif <- raster(str_name)
+  phyclustif
+  plot(phyclustif)
+  
+  ## Create a df for predictor variables
+  sdata <- extract(phyclustif, data[,4:3])
+  
+  #View(sdata)
+  class(sdata)
+  
+  ##Change from matrix to df
+  sdata=as.data.frame(sdata)
+  ## Bind togeter data and extracted variables (sdata)
+  #View(sdata)
+  sdata2 <- cbind(data,sdata)
+  #View(sdata2)
+  str(sdata2)
+  names(sdata2)
+  colnames(sdata2)[25] <-"phyclus"
+  #sdata2$phyclus <- as.factor(sdata2$phyclus)#new
+  
+  ## Count the number of samples by phyclus group
+  
+  sdata3 <-subset(sdata2, !duplicated(SampleCode))
+  head(sdata3)
+  sdata4 <- sdata3%>%group_by(phyclus)%>%count(phyclus)
+  sdata4 <- as.data.frame(sdata4)
+  head(sdata4)
+  
+#sdata4$phyclus <- as.factor(sdata4$phyclus)#new
+  #levels(phyclust$dn)
+sdata4$hex <- c("#F8766D","#DE8C00","#B79F00","#7CAE00","#00BA38","#00C08B","#00BFC4","#00B4F0","#619CFF","#C77CFF","#F564E3","#FF64B0",NA)#,"grey"
+sdata4$hex <- as.factor(sdata4$hex)
+str(sdata4)
+#View(sdata4)
+#addNA(sdata4$phyclus)
 #__________________________________________________________________________________________
 #### USER INTERFACE ####
 
@@ -415,9 +429,24 @@ tabPanel("Data Providers",br(),"We gratefully acknowledge all the individual dat
          h4("Ports & Harbours"), tags$i("Dover Harbour Board (DHB)"),
 style = 'font-size:90%'),
 tabPanel("Funders",(img(src="logos.png",height = 400, width = 800))),
-                    tabPanel(
-                      "variables",fluidRow(
-                                           column(12,plotOutput(outputId="depthPlot", height="800px"))#,
+                    
+#__________________________________________________________________________________________
+#### TAB: HABITAT ####
+tabPanel(
+                      "Habitat",
+                      br(),
+                      "Proportion of samples, by physical habitat",tags$a(href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/1365-2664.13381", "(see Cooper et al., 2019),")," where the selected taxon is present. Display habitats in the map by check the 'habitat' box.",
+                      br(),
+                      #div(DT::dataTableOutput("perc"),style = 'font-size:80%'),
+                      plotOutput("percplot",height = 300, width = 700),
+                      br(),
+                      br(),
+                      "Range of environmental conditions associated with the different physical habitats",
+                      br(),
+                      (img(src="Figure_S1.png",height = 375, width = 550))
+                      ,style = 'font-size:90%'
+                      )#,
+                                           
                                           # column(3,plotOutput(outputId="tempPlot")),
                                           # column(3,plotOutput(outputId="gravelPlot")),
                                           # column(3,plotOutput(outputId="SandPlot")),
@@ -438,13 +467,14 @@ tabPanel("Funders",(img(src="logos.png",height = 400, width = 800))),
     )
   )
 )
-)))
+)
 
 #__________________________________________________________________________________________
 #### SERVER FUNCTION ####
 server <- function(input, output) {
 #__________________________________________________________________________________________
-  output$selected_rank <- renderText({ 
+ #### TAXONOMIC INFO ####
+   output$selected_rank <- renderText({ 
     rankinf=data[which(data$validname == input$taxonInput),]
     paste(unique(rankinf$Rank))
   })
@@ -493,7 +523,8 @@ server <- function(input, output) {
      addPolygons(data=sac,color = "#ff8b3d", weight = 1, smoothFactor = 0.5,group = "sac",popup = paste0("<b>Name: </b>", sac$site_name))%>%
       addPolygons(data=ncmpa,color = "#ff8b3d", weight = 1, smoothFactor = 0.5,group = "ncmpa",popup = paste0("<b>Name: </b>", ncmpa$site_name))%>%
       addPolygons(data=oga,color = "#444444", weight = 1, smoothFactor = 0.5,group = "oga",popup = paste0("<b>Number: </b>", oga$licref, "<br>","<b>Organisation: </b>", oga$licorggrp))%>%
-      addLayersControl(overlayGroups = c("owf","owf_cab","R4_chara","R4_bid","agg","disp","wave","wave_cab","tidal","tidal_cab","oga","mcz","sac","ncmpa"),options = layersControlOptions(collapsed = FALSE))%>%hideGroup(c("owf","owf_cab","R4_chara","R4_bid","agg","disp","wave","wave_cab","tidal","tidal_cab","oga","mcz","sac","ncmpa"))%>%
+      addPolygons(data=phyclust,color = ~factpal(dn), weight = 1, smoothFactor = 0.5, fillOpacity = 0.7,group = "habitat",popup = paste0("<b>Phy Cluster: </b>", phyclust$dn))%>%
+      addLayersControl(overlayGroups = c("owf","owf_cab","R4_chara","R4_bid","agg","disp","wave","wave_cab","tidal","tidal_cab","oga","mcz","sac","ncmpa","habitat"),options = layersControlOptions(collapsed = FALSE))%>%hideGroup(c("owf","owf_cab","R4_chara","R4_bid","agg","disp","wave","wave_cab","tidal","tidal_cab","oga","mcz","sac","ncmpa","habitat"))%>%
       addCircleMarkers(data=points2,~Longitude,~Latitude,radius = 2,stroke = FALSE,fillOpacity = 0.2,popup = paste0("<b>SurveyName: </b>",points2$SurveyName,"<br>","<b>SampleCode: </b>",points2$SampleCode))%>%
       addCircleMarkers(data=points2,~Longitude,~Latitude,radius = 2,stroke = FALSE,fillOpacity = 0.2,popup = ~as.character(SurveyName),group = "myMarkers")%>%
       #addDrawToolbar(polylineOptions = F, circleOptions = F, markerOptions = F,circleMarkerOptions = F, polygonOptions = F, singleFeature=TRUE)%>%
@@ -753,14 +784,19 @@ server <- function(input, output) {
     
     
       vardata1 <- subset(sdata2, validname == input$taxonInput)
-      vardata2=vardata1[,c(25:35,10)]
-      library(reshape2) 
-      vardata3 <- melt(vardata2,"validname")
-      vardata4 <- vardata3[complete.cases(vardata3),]
+      vardata2 <- vardata1[,c(25,10)]
+   
+      vardata3 <- data.frame(vardata2%>%group_by(phyclus)%>%count(phyclus))
+      vardata4 <- full_join(sdata4,vardata3,by = "phyclus", copy = FALSE, suffix = c(".all", ".taxa"))
+      vardata4[, 4][is.na(vardata4[, 4])] <- 0
+      colnames(vardata4) <- c("phyclus","ntotal","hex","n")
+      vardata4$perc <- (vardata4$n/vardata4$ntotal)*100
+      vardata4$phyclus <- as.factor(vardata4$phyclus)
+      vardata4$hex <- as.factor(vardata4$hex)
       return(vardata4)
    
   })
-
+ 
   ###########################################################
   ## Call library 'reshape2' - required for melting data 
   
@@ -771,18 +807,36 @@ server <- function(input, output) {
 
   
   ####################################
-  output$depthPlot <- renderPlot({
-    ggplot(vardata(), aes(x=value)) + 
-    geom_histogram(binwidth=0.5)+
-    geom_density(alpha=0.2,fill="#FF6666")+
-      geom_vline(aes(xintercept=mean(value)),
-                 color="blue", linetype="dashed", size=1)+  
-    facet_wrap(~variable,scales="free")+
-      
-      theme_classic(base_size = 12)#x <- vardata()$Depth
+  
 
+    
+    output$perc <- DT::renderDataTable({
+      vardata() # Reactive metadata object
+ 
   })
   
+  
+  output$percplot <- renderPlot({
+
+    
+    #vardata4$hex <- as.factor(vardata4$hex)
+    
+    #write.table(vardata4, file = "C:/Users/kmc00/OneDrive - CEFAS/R_PROJECTS/OneBenthicTaxaSearchTool/vardata4v2.csv")
+    #browser() 
+    #ggplot(vardata(),aes(x=phyclus,y=perc, col=hex))+#fill=phyclus
+      ggplot(vardata(),aes(x=phyclus,y=perc, fill=hex))+#fill=phyclus
+      geom_bar(stat="identity")+ 
+      #scale_color_manual(values=c("#F8766D","#DE8C00","#B79F00","#7CAE00","#00BA38","#00C08B","#00BFC4","#00B4F0","#619CFF","#C77CFF","#F564E3","#FF64B0"))+
+      scale_fill_manual(values = levels(vardata()$hex),na.value = "black")+
+      geom_text(aes(label=ntotal), vjust=-0.25)+
+      #scale_fill_identity() 
+    #scale_fill_discrete(drop=TRUE,limits = levels(vardata()$hex))+
+      guides(fill=FALSE)+
+      labs(x="Habitat (Phy Cluster)",y="%")+
+      theme_bw(base_size=12)
+      #ggtitle("Percentage of samples where selected taxon is present")
+    
+  })
   #__________________________________________________________________________________________
 }
 shinyApp(ui = ui, server = server)
