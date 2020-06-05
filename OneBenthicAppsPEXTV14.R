@@ -361,6 +361,38 @@ str(sdata4)
 #View(sdata4)
 #addNA(sdata4$phyclus)
 #__________________________________________________________________________________________
+#### MAP LAYERS SOURCE INFO ####
+layer <- data.frame("Layer"=c("owf","owf_cab","R4_chara","R4_bid","agg","disp","wave","wave_cab","tidal","tidal_cab","oga","mcz","sac","ncmpa"),
+                    "Detail"=c("Offshore Wind Site Agreements (England, Wales & NI) - The Crown Estate",
+                               "Offshore Wind Cable Agreements (England, Wales & NI), The Crown Estate",
+                               "Offshore Wind Leasing Round 4 Characterisation Areas (England, Wales and NI) - The Crown Estate",
+                               "Offshore Wind Leasing Round 4 Bidding Areas (England, Wales and NI) - The Crown Estate",
+                               "Offshore Minerals Aggregates Site Agreements (England, Wales & NI), The Crown Estate",
+                               "UK Disposal Site Layer, Cefas",
+                               "Offshore Wave Site Agreements (England, Wales & NI), The Crown Estate",
+                               "Offshore Wind Cable Agreements (England, Wales & NI), The Crown Estate",
+                               "Offshore Tidal Stream Site Agreements (England, Wales & NI), The Crown Estate",
+                               "Offshore Tidal Stream Cable Agreements (England, Wales & NI), The Crown Estate",
+                               "OGA Licences WGS84, Oil and Gas Authority","Marine Conservation Zones (MCZ)","Special Area of Conservation","Nature Conservation Marine Protected Areas (Scotland)"),
+                    "Link"=c("https://opendata.arcgis.com/datasets/091b2244bf534d398140452cc98de09b_0.geojson",
+                             "https://opendata.arcgis.com/datasets/dabc9654ba92480caa914629004a1eba_0.geojson",
+                             "https://opendata.arcgis.com/datasets/c0e61d8972e4438ab1c39304b7f28608_0.geojson",
+                             "https://opendata.arcgis.com/datasets/54dce8a263324a85b36523e31fff20cc_0.geojson",
+                             "https://opendata.arcgis.com/datasets/ced5788f014546b0b571e8d29b021166_0.geojson",
+                             "http://data.cefas.co.uk/#/View/407",
+                             "https://opendata.arcgis.com/datasets/89f05cce72db4bbe9688a98c5d4d8659_0.geojson",
+                             "https://opendata.arcgis.com/datasets/dabc9654ba92480caa914629004a1eba_0.geojson",
+                             "https://opendata.arcgis.com/datasets/a722b677a6754187bd018ca1292af568_0.geojson",
+                             "https://opendata.arcgis.com/datasets/277644bfed424c9196db80911537c5c0_0.geojson",
+                             "https://opendata.arcgis.com/datasets/3c950a2c8186438899f99ced733dd947_0.geojson",
+                             "https://hub.jncc.gov.uk/assets/ade43f34-54d6-4084-b66a-64f0b4a5ef27/c20190905_OffshoreMPAs_WGS84.shp",
+                             "https://hub.jncc.gov.uk/assets/ade43f34-54d6-4084-b66a-64f0b4a5ef27/c20190905_OffshoreMPAs_WGS84.shp",
+                             "https://hub.jncc.gov.uk/assets/ade43f34-54d6-4084-b66a-64f0b4a5ef27/c20190905_OffshoreMPAs_WGS84.shp"))
+
+layer$Link<- paste0("<a href='",layer$Link,"'>",layer$Link,"</a>")
+
+#__________________________________________________________________________________________
+#__________________________________________________________________________________________
 #### USER INTERFACE ####
 
 ui <- fluidPage(
@@ -392,11 +424,26 @@ ui <- fluidPage(
  #            downloadButton("downloadData2", "Download faunal data"),
  #            downloadButton("downloadpsaData2", "Download sediment data")),
 #__________________________________________________________________________________________
+#### TAB: HABITAT ####
+tabPanel(
+  "Habitat",
+  br(),
+  "Proportion of samples by physical habitat class (Phy Cluster) where the selected taxon is present. Habitat classes can be displayed in the map by checking the 'habitat' box. Numbers above each bar are the total number of samples associated with each habitat class."," See ",tags$a(href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/1365-2664.13381", "(see Cooper et al., 2019),")," for a full description of how habitats (Phy Cluster) were derived",
+  br(),
+  #div(DT::dataTableOutput("perc"),style = 'font-size:80%'),
+  plotOutput("percplot",height = 300, width = 700),
+  br(),
+  br(),
+  "Range of environmental conditions associated with the different physical habitats",
+  br(),
+  (img(src="Figure_S1.png",height = 375, width = 550))
+  ,style = 'font-size:90%'),
+#__________________________________________________________________________________________
 #### TAB: ABOUT  ####
              tabPanel("About",h4("App purpose"),"
-To allow users to explore and download macrofaunal and sediment particle size data (grabs/cores) from the",tags$b("OneBenthic")," database.
+Retrieval individual taxon distribution and associated sediment particle size data from the ",tags$b("OneBenthic")," database.
                       
-                      Select by",tags$b("survey")," (drop-down list), or",tags$b("sample"),"(map drawing tool). Selected samples are shown in a table (see appropriate tab), with data available for csv download. Where data providers withold permission, only sample metadata will be output. Activity layers for aggregates, owf, tidal and wave come from the Crown Estate's",tags$a(href="https://opendata-thecrownestate.opendata.arcgis.com/", "Open Data Portal."), "Activity layers for oil and gas come from the Oil and Gas Authority's (OGA) ",tags$a(href="https://data-ogauthority.opendata.arcgis.com/", "Open Data Portal."), "Disposal sites (disp) come from the  ",tags$a(href="http://mdrviewer/#/View/407", "Cefas Data Hub.")," Marine Protected Area layers (mcz, sac and ncmpa) come from the JNCC's Offshore MPAs Shapefile avaialble from their",tags$a(href="http://archive.jncc.gov.uk/page-4661", "website."),br(),br(),
+                      Select a ",tags$b("taxon")," from the drop-down list. Samples containing the selected taxon are shown in the map, with details presented in a table (see 'Data' tab). Taxon records and associated sediment particle size data can be download as .csv files. Only publicly available data are shown in this tool. Under the 'Habitats' tab is a bar chart showing the proportion of samples within different physical habitat classes where the selected taxon is present. Environmental conditions associated with each  habitat class (Phy Cluster), and, by implication, the select taxon, are displayed in a series of box plots. Details of the activity layers shown in the map can be found in the 'Map Layers' tab.",br(),br(),
                       
                       h4("What is OneBenthic?"),
 
@@ -404,20 +451,19 @@ To allow users to explore and download macrofaunal and sediment particle size da
                       
                       "Many of the current key marine environmental issues (e.g. conservation of biodiversity, habitat mapping, marine spatial planning, effects of climate change, cumulative effects) require access to large datasets, and the database meets this need.",
                       
-                       tags$b("OneBenthic")," links directly to a range of other apps providing useable information back to data providers (and the wider public). These apps, available from",tags$a(href="https://openscience.cefas.co.uk/", "CefasOpenScience,")," include:",br(),br(),
-                      tags$a(href="https://openscience.cefas.co.uk/ma_tool/", "1. Baseline Tool"),br(),
-                      tags$a(href="https://openscience.cefas.co.uk/ma_tool/", "2. M-Test Tool"),br(),
-                      tags$a(href="https://openscience.cefas.co.uk/invasive_species/", "3. Non-native Species Tool"),br(),
-                      tags$a(href="https://openscience.cefas.co.uk/faunal_cluster_id/", "4. Faunal Cluster ID Tool"),br(),br(),
+                       tags$b("OneBenthic")," links directly to a range of other apps",tags$a(href="https://openscience.cefas.co.uk/", "CefasOpenScience,"), "providing useable information back to data providers and the wider public",br(),br(),
 
                       "These tools are actively being used by offshore marine industries and government for purposes of project planning, licence compliance monitoring and research.",br(),br(),
 h4("Origin of data"),"Data originate from multiple sources and providers, and were brought together in a study",tags$a(href="http://rdcu.be/wi6C", "(Cooper and Barry, 2017)")," jointly funded by the Department for Food and Rural Affairs, the Marine Management Organisation, the British Marine Aggregate Producers Association, the Crown Estate and the Welsh Government. Data from this study were",tags$a(href="https://doi.org/10.14466/CefasDataHub.34", "published"), "(in csv format) with the kind permission of data providers. The current app provides access to these data is a more user friendly way. Subject to funding, new publicly available data will continue to be added to",tags$b("OneBenthic")," so that it continues to provide an up-to-date and 'complete' source of UK benthic data.",br(),br(),
 
 h4("Data access and use"),tags$b("OneBenthic"),"contains data from a range of data providers in industry and government. With the permission of these providers, data are made available under Crown Copyright and", tags$a(href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/", "Open Government Licence."),"
-Please cite the database as follows: ",br(),tags$b("OneBenthic")," database (2020). Available from https://openscience.cefas.co.uk/OneBenthicExtraction/. Accessed: DD/MM/YYYY.",br(),br(),
+Please cite the database as follows: ",br(),tags$b("OneBenthic")," database (2020). Available from https://openscience.cefas.co.uk/obtst/. Accessed: DD/MM/YYYY.",br(),br(),
 h4("Contact"),"For technical and data issues email keith.cooper@cefas.co.uk",
 style = 'font-size:90%'),
 
+#__________________________________________________________________________________________
+#### TAB: MAP LAYERS ####
+tabPanel("Map Layers",br(),DT::dataTableOutput("activitytable"),style = 'font-size:85%'),
 #__________________________________________________________________________________________
 #### TAB: DATA PROVIDERS ####
 tabPanel("Data Providers",br(),"We gratefully acknowledge all the individual data providers:",br(),
@@ -428,42 +474,13 @@ tabPanel("Data Providers",br(),"We gratefully acknowledge all the individual dat
          h4("Nuclear"), tags$i("EDF Energy"),
          h4("Ports & Harbours"), tags$i("Dover Harbour Board (DHB)"),
 style = 'font-size:90%'),
-tabPanel("Funders",(img(src="logos.png",height = 400, width = 800))),
+#__________________________________________________________________________________________
+#### TAB: FUNDERS ####
+
+tabPanel("Funders",(img(src="logos.png",height = 400, width = 800)))
                     
 #__________________________________________________________________________________________
-#### TAB: HABITAT ####
-tabPanel(
-                      "Habitat",
-                      br(),
-                      "Proportion of samples, by physical habitat",tags$a(href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/1365-2664.13381", "(see Cooper et al., 2019),")," where the selected taxon is present. Display habitats in the map by check the 'habitat' box.",
-                      br(),
-                      #div(DT::dataTableOutput("perc"),style = 'font-size:80%'),
-                      plotOutput("percplot",height = 300, width = 700),
-                      br(),
-                      br(),
-                      "Range of environmental conditions associated with the different physical habitats",
-                      br(),
-                      (img(src="Figure_S1.png",height = 375, width = 550))
-                      ,style = 'font-size:90%'
-                      )#,
-                                           
-                                          # column(3,plotOutput(outputId="tempPlot")),
-                                          # column(3,plotOutput(outputId="gravelPlot")),
-                                          # column(3,plotOutput(outputId="SandPlot")),
-                                          # column(3,plotOutput(outputId="mudPlot")),
-                                          # column(3,plotOutput(outputId="SPMPlot")),
-                                          # column(3,plotOutput(outputId="salPlot")),
-                                          # column(3,plotOutput(outputId="stressPlot")),
-                                          # column(3,plotOutput(outputId="WOVPlot")),
-                                          # column(3,plotOutput(outputId="ChlaPlot"))
-                         #column(3,div(style="height=100px"),plotOutput(outputId="depthPlot"),plotOutput(outputId="tempPlot"),plotOutput(outputId="gravelPlot")),
-            
-                        
-                         #column(3,div(style="height=100px"),plotOutput(outputId="SandPlot"),plotOutput(outputId="mudPlot"),plotOutput(outputId="SPMPlot")),
 
-                         #column(3,div(style="height=100px"),plotOutput(outputId="salPlot"),plotOutput(outputId="stressPlot"),plotOutput(outputId="WOVPlot")),
-                        # column(3,plotOutput(outputId="salPlot"),plotOutput(outputId="stressPlot"),plotOutput(outputId="WOVPlot")),
-                         #column(3,div(style="height=100px"),plotOutput(outputId="ChlaPlot"))
     )
   )
 )
@@ -473,6 +490,13 @@ tabPanel(
 #### SERVER FUNCTION ####
 server <- function(input, output) {
 #__________________________________________________________________________________________
+  #### TABLE FOR ACTIVITY LAYERS ####
+  
+  output$activitytable <- DT::renderDataTable(
+    
+    DT::datatable(layer, options = list(pageLength = 14),escape=FALSE)
+  )
+  #__________________________________________________________________________________________  
  #### TAXONOMIC INFO ####
    output$selected_rank <- renderText({ 
     rankinf=data[which(data$validname == input$taxonInput),]
