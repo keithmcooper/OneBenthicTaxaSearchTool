@@ -12,34 +12,47 @@ library(dplyr)
 library(geojsonio)
 library(sp)
 library(ggplot2)
-library(ggplot2)
+library(config)
+library(pool)
+#__________________________________________________________________________________________
+#### CREATE A CONNECTION TO OneBenthic LIVE ####
+Sys.setenv(R_CONFIG_ACTIVE = "one_benthic")
 
+dw <- config::get()
+
+pool <- dbPool(drv = dbDriver(dw$driver),
+               dbname = dw$database,
+               host = dw$server,
+               port =  dw$port,
+               user = dw$uid,
+               password = dw$pwd)
+#__________________________________________________________________________________________
 #__________________________________________________________________________________________
 #### cREATE A CONNECTION TO THE DATABASE ####
 
 ## create a connection to OneBenthic Live. Save the password
-pw <- {
-  "0neBenth!c5374"
-}
-logged= FALSE;
+#pw <- {
+#  "0neBenth!c5374"
+#}
+#logged= FALSE;
 
 ## Load PostgreSQL driver
-drv <- dbDriver("Postgres")
+#drv <- dbDriver("Postgres")
 
 ## Create connection to the Postgres database. Note that "con" will be used later in each connection to the database
-con =  dbConnect(drv, dbname = "one_benthic",
-                 host = "azsclnxgis-ext01.postgres.database.azure.com",
-                 port = 5432,
-                 user = "editors_one_benthic@azsclnxgis-ext01 ",
-                 password = pw)
+#con =  dbConnect(drv, dbname = "one_benthic",
+#                 host = "azsclnxgis-ext01.postgres.database.azure.com",
+#                 port = 5432,
+#                 user = "editors_one_benthic@azsclnxgis-ext01 ",
+#                 password = pw)
 
-rm(pw) # remove the password
+#rm(pw) # remove the password
 
 #__________________________________________________________________________________________
 #### GET POINT SAMPLE DATA (META & FAUNA) ####
 
 ## Get data
-data = dbGetQuery(con,
+data = dbGetQuery(pool,
 "SELECT su.surveyname,
 s.samplecode,
 s.samplelat,
@@ -52,7 +65,7 @@ ts.taxaqual_qualifier,
 w.validname,
 w.rank,
 tq.qualifiername,
-a.worrms_validaphiaid,
+w.validaphiaid,
 ts.abund,
 su.datapubliclyavailable,
 s.samplecode2,
@@ -72,13 +85,11 @@ INNER JOIN samples.sample as s ON ss.sample_samplecode = s.samplecode
 INNER JOIN gear.gear as g ON s.gear_gearcode = g.gearcode
 INNER JOIN faunal_data.taxasample as ts ON s.samplecode= ts.sample_samplecode 
 LEFT JOIN faunal_data.taxaqual as tq ON ts.taxaqual_qualifier = tq.qualifier 
-INNER JOIN faunal_data.worrmstaxa as wt ON wt.taxonname = ts.worrmstaxa_taxonname 
-INNER JOIN faunal_data.aphia as a ON wt.aphia_aphiaid = a.aphiaid 
-INNER JOIN faunal_data.worrms as w ON w.validaphiaid = a.worrms_validaphiaid
+INNER JOIN faunal_data.worrms as w ON w.aphiaid = ts.worrms_aphiaid
 INNER JOIN associations.sampleowner as so ON so.sample_samplecode = s.samplecode
 INNER JOIN associations.owner as o ON so.owner_ownername = o.ownername
 WHERE datapubliclyavailable = TRUE
-ORDER by su.surveyname;
+ORDER by su.surveyname;;
 ")
 
 ## Check names
@@ -193,21 +204,21 @@ names(psadata)
 #__________________________________________________________________________________________
 #### GET SPATIAL LAYERS FROM OneBenthic - WHERE NO API AVAILABLE (MPAS, O&G, DISP) ####
 
-mcz <-  st_read(con, query = "SELECT * FROM spatial.c20190905_offshorempas_wgs84 WHERE site_statu = 'MCZ - Secretary of State';")
-sac <-  st_read(con, query = "SELECT * FROM spatial.c20190905_offshorempas_wgs84 WHERE site_statu = 'SAC'or site_statu = 'cSAC';")
-ncmpa <-  st_read(con, query = "SELECT * FROM spatial.c20190905_offshorempas_wgs84 WHERE site_statu = 'NCMPA';")
-oga <- st_read(con, query = "SELECT * FROM spatial.oga_licences_wgs84;")
-disp  <-  st_read(con, query = "SELECT * FROM spatial.disposalSiteJan2020;")
-agg <- st_read(con, query = "SELECT * FROM ap_marine_aggregate.extraction_areas;")
-owf <- st_read(con, query = "SELECT * FROM spatial.offshore_wind_site_agreements_england_wales__ni__the_crown_esta;")
-owf_cab <- st_read(con, query = "SELECT * FROM spatial.offshore_wind_cable_agreements_england_wales__ni_the_crown_esta;")
-wave <- st_read(con, query = "SELECT * FROM spatial.offshore_wave_site_agreements_england_wales__ni_the_crown_estat;")
-wave_cab <- st_read(con, query = "SELECT * FROM spatial.offshore_wave_cable_agreements_england_wales__ni_the_crown_esta;")
-tidal <- st_read(con, query = "SELECT * FROM spatial.offshore_tidal_stream_site_agreements_england_wales__ni_the_cro;")
-tidal_cab <- st_read(con, query = "SELECT * FROM spatial.offshore_tidal_stream_cable_agreements_england_wales__ni_the_cr;")
-R4_chara <- st_read(con, query = "SELECT * FROM spatial.offshore_wind_leasing_round_4_characterisation_areas_england_wa;")
-R4_bid <- st_read(con, query = "SELECT * FROM spatial.offshore_wind_leasing_round_4_bidding_areas_england_wales_and_n;")
-phyclust <- st_read(con, query = "SELECT * FROM spatial.physicalcluster;")
+mcz <-  st_read(pool, query = "SELECT * FROM spatial.c20190905_offshorempas_wgs84 WHERE site_statu = 'MCZ - Secretary of State';")
+sac <-  st_read(pool, query = "SELECT * FROM spatial.c20190905_offshorempas_wgs84 WHERE site_statu = 'SAC'or site_statu = 'cSAC';")
+ncmpa <-  st_read(pool, query = "SELECT * FROM spatial.c20190905_offshorempas_wgs84 WHERE site_statu = 'NCMPA';")
+oga <- st_read(pool, query = "SELECT * FROM spatial.oga_licences_wgs84;")
+disp  <-  st_read(pool, query = "SELECT * FROM spatial.disposalSiteJan2020;")
+agg <- st_read(pool, query = "SELECT * FROM ap_marine_aggregate.extraction_areas;")
+owf <- st_read(pool, query = "SELECT * FROM spatial.offshore_wind_site_agreements_england_wales__ni__the_crown_esta;")
+owf_cab <- st_read(pool, query = "SELECT * FROM spatial.offshore_wind_cable_agreements_england_wales__ni_the_crown_esta;")
+wave <- st_read(pool, query = "SELECT * FROM spatial.offshore_wave_site_agreements_england_wales__ni_the_crown_estat;")
+wave_cab <- st_read(pool, query = "SELECT * FROM spatial.offshore_wave_cable_agreements_england_wales__ni_the_crown_esta;")
+tidal <- st_read(pool, query = "SELECT * FROM spatial.offshore_tidal_stream_site_agreements_england_wales__ni_the_cro;")
+tidal_cab <- st_read(pool, query = "SELECT * FROM spatial.offshore_tidal_stream_cable_agreements_england_wales__ni_the_cr;")
+R4_chara <- st_read(pool, query = "SELECT * FROM spatial.offshore_wind_leasing_round_4_characterisation_areas_england_wa;")
+R4_bid <- st_read(pool, query = "SELECT * FROM spatial.offshore_wind_leasing_round_4_bidding_areas_england_wales_and_n;")
+phyclust <- st_read(pool, query = "SELECT * FROM spatial.physicalcluster;")
 
 ## Check class of objects
 class(mcz)#[1] "sf"         "data.frame"
@@ -325,8 +336,9 @@ setwd('C:/Users/kmc00/OneDrive - CEFAS/R_PROJECTS/OneBenthicTaxaSearchTool/R')
 ## Bring in raster data for PhyCluster group
   str_name<-'DATA/PhysicalCluster.tif' 
   phyclustif <- raster(str_name)
+
   phyclustif
-  plot(phyclustif)
+  #plot(phyclustif)
   
   ## Create a df for predictor variables
   sdata <- extract(phyclustif, data[,4:3])
