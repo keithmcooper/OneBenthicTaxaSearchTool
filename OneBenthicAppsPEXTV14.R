@@ -88,10 +88,10 @@ LEFT JOIN faunal_data.taxaqual as tq ON ts.taxaqual_qualifier = tq.qualifier
 INNER JOIN faunal_data.worrms as w ON w.aphiaid = ts.worrms_aphiaid
 INNER JOIN associations.sampleowner as so ON so.sample_samplecode = s.samplecode
 INNER JOIN associations.owner as o ON so.owner_ownername = o.ownername
-WHERE datapubliclyavailable = TRUE
+
 ORDER by su.surveyname;;
 ")
-
+#WHERE datapubliclyavailable = TRUE
 ## Check names
 names(data)
 
@@ -330,7 +330,7 @@ library(raster)
 
 
 ## Set working directory
-setwd('C:/Users/kmc00/OneDrive - CEFAS/R_PROJECTS/OneBenthicTaxaSearchTool/R')
+#setwd('C:/Users/kmc00/OneDrive - CEFAS/R_PROJECTS/OneBenthicTaxaSearchTool/R')
 ###############################################
 
 ## Bring in raster data for PhyCluster group
