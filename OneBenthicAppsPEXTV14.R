@@ -15,6 +15,25 @@ library(ggplot2)
 library(config)
 library(pool)
 #__________________________________________________________________________________________
+#### CODE TO SOLVE ERROR: Missing dbQuoteLiteral methods for pool' ####
+
+##https://github.com/rstudio/pool/issues/96
+#' @importMethodsFrom DBI dbQuoteLiteral
+#' @importFrom pool poolCheckout poolReturn
+#' @export
+setMethod("dbQuoteLiteral", c("Pool", "ANY"),
+          function(conn, x, ...) {
+            # As of 2020-05-07, this is necessary due to an incompatiblity
+            # between packages `pool` (v 0.1.4.3) and `glue` (v >= 1.3.2).
+            # In v1.3.2, `glue` started using `dbQuoteLiteral`, which is
+            # currently not offered by `pool`, so creating it here.
+            connection <- pool::poolCheckout(conn)
+            on.exit(pool::poolReturn(connection))
+            DBI::dbQuoteLiteral(connection, x, ...)
+          }
+)
+
+#__________________________________________________________________________________________
 #### CREATE A CONNECTION TO OneBenthic LIVE ####
 Sys.setenv(R_CONFIG_ACTIVE = "one_benthic")
 
