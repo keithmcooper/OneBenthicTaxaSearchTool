@@ -163,7 +163,7 @@ points2 <- unique(data[,c(4:3,1,2)])
 #### GET POINT SAMPLE DATA (META & PSA) ####
 
 ## Get data
-psadata = dbGetQuery(con,
+psadata = dbGetQuery(pool,
                      "SELECT
 su.surveyname,
 s.samplecode,
