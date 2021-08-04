@@ -187,9 +187,8 @@ INNER JOIN gear.gear as g ON s.gear_gearcode = g.gearcode
 INNER JOIN sediment_data.sedvarsample as svs ON s.samplecode= svs.sample_samplecode 
 INNER JOIN associations.sampleowner as so ON so.sample_samplecode = s.samplecode
 INNER JOIN associations.owner as o ON so.owner_ownername = o.ownername
-WHERE datapubliclyavailable = TRUE
 ORDER by su.surveyname;")
-
+#WHERE datapubliclyavailable = TRUE
 ## Check results of query 
 names(psadata)
 
