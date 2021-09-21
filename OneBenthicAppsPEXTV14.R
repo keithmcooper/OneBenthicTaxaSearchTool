@@ -426,7 +426,7 @@ layer$Link<- paste0("<a href='",layer$Link,"'>",layer$Link,"</a>")
 #### USER INTERFACE ####
 
 ui <- fluidPage(
- titlePanel(title=div(img(src="onebenthic.GIF",tags$b(" OneBenthic"),"Taxa Search Tool",height = 65, width = 170),#HEIGHT65
+ titlePanel(title=div(img(src="onebenthic.gif",tags$b(" OneBenthic"),"Taxa Search Tool",height = 65, width = 170),#HEIGHT65
                        style='background-color:#B4C7E7;
                     padding-right: 50px')),
 
