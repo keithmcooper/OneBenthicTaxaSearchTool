@@ -14,6 +14,7 @@ library(sp)
 library(ggplot2)
 library(config)
 library(pool)
+library(leaflet.esri)
 #__________________________________________________________________________________________
 #### CODE TO SOLVE ERROR: Missing dbQuoteLiteral methods for pool' ####
 
@@ -562,7 +563,8 @@ server <- function(input, output) {
     
     ## Basic map
       leaflet() %>%
-      addProviderTiles(providers$Esri.OceanBasemap,options = providerTileOptions(noWrap = TRUE))%>%
+      addEsriBasemapLayer(esriBasemapLayers$Oceans, autoLabels = F)%>%
+      #addProviderTiles(providers$Esri.OceanBasemap,options = providerTileOptions(noWrap = TRUE))%>%
       addPolygons(data=owf,color = "#444444", weight = 1, smoothFactor = 0.5,group = "owf",popup = paste0("<b>Name: </b>", owf$Name_Prop, "<br>","<b>Status: </b>", owf$Inf_Status))%>%
       addPolygons(data=owf_cab,color = "#444444", weight = 1, smoothFactor = 0.5,group = "owf_cab",popup = paste0("<b>Name: </b>", owf_cab$Name_Prop, "<br>","<b>Status: </b>", owf_cab$Infra_Stat))%>%
       addPolygons(data=R4_chara,color = "#444444", weight = 1, smoothFactor = 0.5,group = "R4_chara",popup = paste0("<b>Name: </b>", R4_chara$Name))%>%
