@@ -46,27 +46,6 @@ pool <- dbPool(drv = dbDriver(dw$driver),
                port =  dw$port,
                user = dw$uid,
                password = dw$pwd)
-#__________________________________________________________________________________________
-#__________________________________________________________________________________________
-#### cREATE A CONNECTION TO THE DATABASE ####
-
-## create a connection to OneBenthic Live. Save the password
-#pw <- {
-#  "0neBenth!c5374"
-#}
-#logged= FALSE;
-
-## Load PostgreSQL driver
-#drv <- dbDriver("Postgres")
-
-## Create connection to the Postgres database. Note that "con" will be used later in each connection to the database
-#con =  dbConnect(drv, dbname = "one_benthic",
-#                 host = "azsclnxgis-ext01.postgres.database.azure.com",
-#                 port = 5432,
-#                 user = "editors_one_benthic@azsclnxgis-ext01 ",
-#                 password = pw)
-
-#rm(pw) # remove the password
 
 #__________________________________________________________________________________________
 #### GET POINT SAMPLE DATA (META & FAUNA) ####
