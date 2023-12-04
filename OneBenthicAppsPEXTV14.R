@@ -467,7 +467,7 @@ Retrieval individual taxon distribution and associated sediment particle size da
 h4("Origin of data"),"Data originate from multiple sources and providers, and were brought together in a study",tags$a(href="http://rdcu.be/wi6C", "(Cooper and Barry, 2017)")," jointly funded by the Department for Food and Rural Affairs, the Marine Management Organisation, the British Marine Aggregate Producers Association, the Crown Estate and the Welsh Government. Data from this study were",tags$a(href="https://doi.org/10.14466/CefasDataHub.34", "published"), "(in csv format) with the kind permission of data providers. The current app provides access to these data is a more user friendly way. Subject to funding, new publicly available data will continue to be added to",tags$b("OneBenthic")," so that it continues to provide an up-to-date and 'complete' source of UK benthic data.",br(),br(),
 
 h4("Data access and use"),tags$b("OneBenthic"),"contains data from a range of data providers in industry and government. With the permission of these providers, data are made available under Crown Copyright and", tags$a(href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/", "Open Government Licence."),"
-Please cite the database as follows: ",br(),tags$b("OneBenthic")," database (2020). Available from https://openscience.cefas.co.uk/obtst/. Accessed: DD/MM/YYYY.",br(),br(),
+Please cite the database as follows: ",br(),tags$b("OneBenthic")," database (2023). Available from https://openscience.cefas.co.uk/obtst/. Accessed: DD/MM/YYYY.",br(),br(),
 h4("Contact"),"For technical and data issues email keith.cooper@cefas.co.uk",
 style = 'font-size:90%'),
 
