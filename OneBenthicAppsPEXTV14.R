@@ -414,7 +414,7 @@ ui <- fluidPage(
     
 #__________________________________________________________________________________________
 #### SELECT SURVEY(S) ####    
-    column(2,selectizeInput(inputId="taxonInput", multiple = F,h4("Select taxa",style="color:#808080"),choices =levels(as.factor(data$validname)),selected=NULL,options=list(maxOptions=4000)),h4("Taxon Rank:",style="color:#808080"),textOutput("selected_rank"),br(),h4("AphiaID:",style="color:#808080"),textOutput("selected_aphiaid"),br(),h4("Phylum:",style="color:#808080"),textOutput("selected_phylum"),h4("Class:",style="color:#808080"),textOutput("selected_class"),h4("Order:",style="color:#808080"),textOutput("selected_order"),h4("Family:",style="color:#808080"),textOutput("selected_family"),h4("Genus:",style="color:#808080"),textOutput("selected_genus")),
+    column(2,selectizeInput(inputId="taxonInput", multiple = F,h4("Select taxon",style="color:#808080"),choices =levels(as.factor(data$validname)),selected=NULL,options=list(maxOptions=4000)),h4("Taxon Rank:",style="color:#808080"),textOutput("selected_rank"),br(),h4("AphiaID:",style="color:#808080"),textOutput("selected_aphiaid"),br(),h4("Phylum:",style="color:#808080"),textOutput("selected_phylum"),h4("Class:",style="color:#808080"),textOutput("selected_class"),h4("Order:",style="color:#808080"),textOutput("selected_order"),h4("Family:",style="color:#808080"),textOutput("selected_family"),h4("Genus:",style="color:#808080"),textOutput("selected_genus")),
     
 #__________________________________________________________________________________________
 #### MAP ####    
