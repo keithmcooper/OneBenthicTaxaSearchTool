@@ -438,7 +438,7 @@ ui <- fluidPage(
 tabPanel(
   "Habitat",
   br(),
-  "Proportion of samples by physical habitat class (Phy Cluster) where the selected taxon is present. Habitat classes can be displayed in the map by checking the 'habitat' box. Numbers above each bar are the total number of samples associated with each habitat class."," See ",tags$a(href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/1365-2664.13381", "(see Cooper et al., 2019),")," for a full description of how habitats (Phy Cluster) were derived",
+  "Proportion of samples by physical habitat class (Phy Cluster) where the selected taxon is present. Habitat classes can be displayed in the map by checking the 'habitat' box. Numbers above each bar are the total number of samples associated with each habitat class."," See ",tags$a(href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/1365-2664.13381", "(see Cooper et al., 2019),")," for a full description of how habitats (Phy Cluster) were derived.",
   br(),
   #div(DT::dataTableOutput("perc"),style = 'font-size:80%'),
   plotOutput("percplot",height = 300, width = 700),
